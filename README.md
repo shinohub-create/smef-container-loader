@@ -1,4 +1,11 @@
-# SMEF Container Loader – Excel add-in
+# SMEF Container Loader
+
+**Open the 3D view in your browser:** https://shinohub-create.github.io/smef-container-loader/
+Click **Import Excel** and pick your Container Loader workbook, or drag the file onto the page. The workbook is read in your browser and is never uploaded anywhere. The workbook's **Open 3D View** links point here.
+
+The rest of this file covers the optional Excel add-in, which needs permission to install add-ins.
+
+## Excel add-in (optional)
 
 The add-in puts a **3D View** button on Excel's Home tab. The button opens a side panel that reads your Container Loader workbook and draws the load in 3D:
 
