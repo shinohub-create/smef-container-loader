@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMEF Container Loader</title>
+<link rel="stylesheet" href="taskpane.css">
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="lib/xlsx.full.min.js" defer></script>
+</head>
+<body>
+<div class="pane">
+  <header class="top">
+    <h1><span>SMEF</span> Container Loader</h1>
+    <div class="status" id="status">Starting…</div>
+  </header>
+
+  <div class="ctl">
+    <div class="row"><span class="label">Container</span><div class="seg" id="ctypeSeg"></div></div>
+    <div class="row" id="cnumGrp" hidden><span class="label">Unit</span><div class="seg" id="cnumSeg"></div></div>
+    <div class="row"><span class="label">View</span>
+      <div class="seg" id="viewSeg">
+        <button type="button" data-view="iso" aria-pressed="true">3D</button>
+        <button type="button" data-view="top" aria-pressed="false">Top</button>
+        <button type="button" data-view="side" aria-pressed="false">Side</button>
+        <button type="button" data-view="door" aria-pressed="false">Door</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="bay" aria-label="3D container view">
+    <div class="bay-head">
+      <div class="bay-title" id="bayTitle"></div>
+      <button class="btn small" id="refreshBtn" type="button" title="Read the workbook again">↻ Refresh</button>
+    </div>
+    <div id="stage">
+      <div id="tip" hidden></div>
+      <div class="empty" id="emptyMsg" hidden></div>
+    </div>
+    <div class="bay-opts">
+      <label class="chk"><input type="checkbox" id="optLabels" checked> Labels</label>
+      <label class="chk"><input type="checkbox" id="optScale" checked> Scale</label>
+      <label class="chk"><input type="checkbox" id="optGhost"> See-through</label>
+    </div>
+    <div class="bay-foot">
+      <button class="btn small" id="playBtn" type="button">▶ Play</button>
+      <input type="range" id="seq" min="0" max="0" value="0" aria-label="Units loaded">
+      <span class="seq-out" id="seqOut">0 / 0</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="verdict" id="verdict"></div>
+    <div id="meters"></div>
+  </section>
+
+  <section class="card">
+    <h2>Compare types</h2>
+    <div class="cmp" id="cmp"></div>
+  </section>
+
+  <section class="card">
+    <h2>Cargo in this container</h2>
+    <ul class="legend" id="legend"></ul>
+    <div id="nofit"></div>
+  </section>
+
+  <section class="card browser-only" id="browserCard" hidden>
+    <h2>Not running inside Excel</h2>
+    <p class="muted">Open this from the <b>3D View</b> button on Excel's Home tab to read the workbook live. Here you can still import the workbook file.</p>
+    <input type="file" id="file" accept=".xlsx,.xlsm,.xls" hidden>
+    <button class="btn primary" id="importBtn" type="button">Import Excel file</button>
+  </section>
+
+  <p class="foot muted">Reads the <b>Input</b>, <b>Containers</b> and <b>Loading Plan</b> sheets and redraws when they change. Choosing a container type here also sets Loading Plan C3. Drag the pane edge to make the view wider.</p>
+</div>
+<script src="taskpane.js"></script>
+</body>
+</html>

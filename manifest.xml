@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SMEF Container Loader - Excel add-in manifest.
+  Before sideloading: replace every https://shinohub-create.github.io/smef-container-loader
+  with the HTTPS address where you host this folder (see README.md).
+-->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+  <Id>d873eb17-1489-42be-bc42-c1058daf04ff</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>SMEF</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="SMEF Container Loader"/>
+  <Description DefaultValue="Live 3D view of the container load, read from the Container Loader workbook."/>
+  <IconUrl DefaultValue="https://shinohub-create.github.io/smef-container-loader/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://shinohub-create.github.io/smef-container-loader/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://shinohub-create.github.io/smef-container-loader/README.md"/>
+  <AppDomains>
+    <AppDomain>https://shinohub-create.github.io</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="ExcelApi" MinVersion="1.7"/>
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://shinohub-create.github.io/smef-container-loader/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="SMEF.Group">
+                <Label resid="Group.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16"/>
+                  <bt:Image size="32" resid="Icon.32"/>
+                  <bt:Image size="80" resid="Icon.80"/>
+                </Icon>
+                <Control xsi:type="Button" id="SMEF.Open3D">
+                  <Label resid="Button.Label"/>
+                  <Supertip>
+                    <Title resid="Button.Label"/>
+                    <Description resid="Button.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16"/>
+                    <bt:Image size="32" resid="Icon.32"/>
+                    <bt:Image size="80" resid="Icon.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>SMEF.Taskpane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16" DefaultValue="https://shinohub-create.github.io/smef-container-loader/assets/icon-16.png"/>
+        <bt:Image id="Icon.32" DefaultValue="https://shinohub-create.github.io/smef-container-loader/assets/icon-32.png"/>
+        <bt:Image id="Icon.80" DefaultValue="https://shinohub-create.github.io/smef-container-loader/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://shinohub-create.github.io/smef-container-loader/README.md"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://shinohub-create.github.io/smef-container-loader/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://shinohub-create.github.io/smef-container-loader/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="SMEF Container Loader is ready"/>
+        <bt:String id="Group.Label" DefaultValue="SMEF Loader"/>
+        <bt:String id="Button.Label" DefaultValue="3D View"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Click 3D View on the Home tab to see the container load in 3D."/>
+        <bt:String id="Button.Tooltip" DefaultValue="Open the live 3D view of the container load from the Input, Containers and Loading Plan sheets."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>
