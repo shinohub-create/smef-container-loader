@@ -519,24 +519,42 @@ function renderSide(){
   if(!k.items.size){lg.innerHTML=`<li style="grid-template-columns:1fr;color:var(--muted)">No units in this container.</li>`}
   k.items.forEach((n,idx)=>{const li=document.createElement("li");li.innerHTML=`<span class="sw" style="background:${COLORS[idx%COLORS.length]}"></span><span class="name">#${idx+1} ${esc(cargo[idx].name||"Model")}</span><span class="q">${n} pcs</span>`;lg.appendChild(li)});
 }
+let tableInPlace=false;
+function planCells(p){
+  let plan="",len="";
+  if(p.active&&!p.fit){plan=`<span class="pill bad">Does not fit · ${p.why}</span>`}
+  else if(p.fit){plan=`<span class="calc">${p.orient} · ${p.across} across × ${p.layers} high · ${p.rows} row${p.rows>1?"s":""}</span>`;len=`<span class="calc">${fmt(p.floorLen)} cm</span>`}
+  return{plan,len};
+}
 function renderTable(){
   const tb=document.getElementById("rows");
+  if(tableInPlace&&tb.children.length===cargo.length){
+    // while typing: only refresh the calculated cells so the input being edited keeps its cursor
+    let tq=0,tv=0,tk=0;
+    cargo.forEach((it,i)=>{
+      const q=+it.qty||0;tq+=q;tv+=q*(+it.l||0)*(+it.w||0)*(+it.h||0)/1e6;tk+=q*(+it.kg||0);
+      const c=planCells(result.plans[i]||{}),tr=tb.children[i];
+      const pc=tr.querySelector(".plan-cell"),lc=tr.querySelector(".len-cell");
+      if(pc&&pc.innerHTML!==c.plan)pc.innerHTML=c.plan;
+      if(lc&&lc.innerHTML!==c.len)lc.innerHTML=c.len;
+    });
+    document.getElementById("totals").textContent=`${fmt(tq)} pcs · ${fmt(tv,2)} CBM · ${fmt(tk)} kg`;
+    return;
+  }
   const active=document.activeElement&&tb.contains(document.activeElement)?{r:document.activeElement.dataset.r,f:document.activeElement.dataset.f,s:document.activeElement.selectionStart}:null;
   tb.innerHTML="";
   let tq=0,tv=0,tk=0;
   cargo.forEach((it,i)=>{
     const p=result.plans[i]||{};
     const q=+it.qty||0;tq+=q;tv+=q*(+it.l||0)*(+it.w||0)*(+it.h||0)/1e6;tk+=q*(+it.kg||0);
-    let plan="",len="";
-    if(p.active&&!p.fit){plan=`<span class="pill bad">Does not fit · ${p.why}</span>`}
-    else if(p.fit){plan=`<span class="calc">${p.orient} · ${p.across} across × ${p.layers} high · ${p.rows} row${p.rows>1?"s":""}</span>`;len=`<span class="calc">${fmt(p.floorLen)} cm</span>`}
+    const {plan,len}=planCells(p);
     const tr=document.createElement("tr");
     const inp=(f,type,v,extra="")=>`<input id="c-${i}-${f}" data-r="${i}" data-f="${f}" type="${type}" value="${v===undefined||v===null?"":esc(v)}" ${type==="number"?'min="0" step="any" inputmode="decimal"':""} ${extra}>`;
     tr.innerHTML=`<td><span class="sw" style="background:${COLORS[i%COLORS.length]}"></span></td>
       <td>${inp("name","text",it.name,'aria-label="Model"')}</td><td>${inp("qty","number",it.qty,'aria-label="Quantity"')}</td>
       <td>${inp("w","number",it.w,'aria-label="Width cm"')}</td><td>${inp("l","number",it.l,'aria-label="Depth cm"')}</td><td>${inp("h","number",it.h,'aria-label="Height cm"')}</td>
       <td>${inp("kg","number",it.kg,'aria-label="Weight per unit kg"')}</td><td>${inp("stack","number",it.stack,'aria-label="Max stack layers" placeholder="–"')}</td>
-      <td>${plan}</td><td class="num">${len}</td><td><button class="del" type="button" data-del="${i}" aria-label="Remove row">×</button></td>`;
+      <td class="plan-cell">${plan}</td><td class="num len-cell">${len}</td><td><button class="del" type="button" data-del="${i}" aria-label="Remove row">×</button></td>`;
     tb.appendChild(tr);
   });
   document.getElementById("totals").textContent=`${fmt(tq)} pcs · ${fmt(tv,2)} CBM · ${fmt(tk)} kg`;
@@ -546,7 +564,7 @@ let debounce=null;
 document.getElementById("rows").addEventListener("input",e=>{
   const t=e.target;if(!t.dataset.f)return;
   const it=cargo[+t.dataset.r];it[t.dataset.f]=t.type==="number"?(t.value===""?"":Number(t.value)):t.value;
-  clearTimeout(debounce);debounce=setTimeout(()=>{matCache.clear();recompute()},350);
+  clearTimeout(debounce);debounce=setTimeout(()=>{matCache.clear();tableInPlace=true;try{recompute()}finally{tableInPlace=false}},350);
 });
 document.getElementById("rows").addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(!d)return;cargo.splice(+d.dataset.del,1);matCache.clear();recompute()});
 document.getElementById("addRow").onclick=()=>{cargo.push({name:"",qty:"",l:"",w:"",h:"",kg:"",stack:""});recompute(false);const el=document.getElementById(`c-${cargo.length-1}-name`);el&&el.focus()};
