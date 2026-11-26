@@ -73,3 +73,7 @@ You need Microsoft 365 or Excel 2021 or later (Windows, Mac or web). The panel u
 - **Loading Plan**: the selected container type in C3.
 
 Packing follows the workbook's Calc sheet. Units stay upright, and each model is tried lengthwise and turned 90°. Each row fills the container width, stacked up to the height or the max-stack limit. Rows load from the front wall towards the door. When cargo spills into a second container, the 3D view moves the whole row into the next container instead of splitting it.
+
+## Changes
+
+- 26 Nov 2026: cargo sizes are W × D × H; typing in the cargo table no longer moves the cursor.
