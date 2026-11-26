@@ -23,12 +23,14 @@ function setStatus(t,err){const s=$("status");s.textContent=t;s.classList.toggle
 
 /* ---------- workbook parsing (shared by Excel and file import) ---------- */
 function parseCargo(rows){
-  const hi=rows.findIndex(r=>r.some(v=>/length/i.test(String(v)))&&r.some(v=>/model|desc|item/i.test(String(v))));
-  if(hi<0)return{error:"Couldn't find the cargo header row (Model, Quantity, Length…) on the Input sheet."};
-  const H=rows[hi].map(v=>String(v).toLowerCase());
-  const col=re=>H.findIndex(h=>re.test(h));
-  const ci={name:col(/model|desc|item/),qty:col(/qty|quantity|pcs/),l:col(/length/),w:col(/width/),h:col(/height/),kg:col(/weight|kg/),stack:col(/stack/)};
-  if(ci.l<0||ci.w<0||ci.h<0||ci.qty<0)return{error:"The Input header row needs Quantity, Length, Width and Height columns."};
+  const norm=v=>String(v??"").toLowerCase().replace(/\(.*?\)|\bcm\b|[^a-z ]/g," ").replace(/\s+/g," ").trim();
+  const isW=h=>h==="w"||/\bwidth\b/.test(h),isD=h=>h==="d"||/depth|length/.test(h),isH=h=>h==="h"||/height/.test(h);
+  const hi=rows.findIndex(r=>{const n=r.map(norm);return n.some(isW)&&n.some(isD)&&n.some(isH)});
+  if(hi<0)return{error:"Couldn't find the cargo header row (Model, Quantity, W, D, H…) on the Input sheet."};
+  const H=rows[hi].map(norm);
+  const col=t=>H.findIndex(typeof t==="function"?t:h=>t.test(h));
+  const ci={name:col(/model|desc|item/),qty:col(/qty|quantity|pcs/),l:col(isD),w:col(isW),h:col(isH),kg:col(/weight|kg/),stack:col(/stack/)};
+  if(ci.l<0||ci.w<0||ci.h<0||ci.qty<0)return{error:"The Input header row needs Quantity, W, D and H columns."};
   const out=[];
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i],nm=ci.name>=0?String(r[ci.name]??"").trim():"";
@@ -143,7 +145,7 @@ function faceMat(idx,fw,fh,labels,ghost){
   let m;
   if(labels){
     const scale=Math.min(4,900/Math.max(fw,fh));
-    const cv=textCanvas([`#${idx+1} ${it.name||"Model "+(idx+1)}`,`${it.l}×${it.w}×${it.h} cm`,it.kg?`${it.kg} kg`:""].filter(Boolean),
+    const cv=textCanvas([`#${idx+1} ${it.name||"Model "+(idx+1)}`,`W${it.w} × D${it.l} × H${it.h} cm`,it.kg?`${it.kg} kg`:""].filter(Boolean),
       {w:Math.max(32,Math.round(fw*scale)),h:Math.max(32,Math.round(fh*scale)),bg:col,fg:lum(col)>.55?"#111":"#fff",border:shade(col,.6)});
     const tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;
     m=new THREE.MeshLambertMaterial({map:tex,...opts});
@@ -203,7 +205,7 @@ function buildCargo(){
   const k=result&&result.list[cnum],empty=$("emptyMsg");
   if(!k||!k.units.length){
     empty.hidden=false;
-    empty.textContent=cargo.length?"Nothing fits in this container type. See the rows listed under Cargo.":"No cargo yet. Fill in quantity and L × W × H on the Input sheet.";
+    empty.textContent=cargo.length?"Nothing fits in this container type. See the rows listed under Cargo.":"No cargo yet. Fill in quantity and W × D × H on the Input sheet.";
     updateSeq(0,true);return;
   }
   empty.hidden=true;
@@ -254,7 +256,7 @@ function setHover(m,x,y){
   if(!m){hovered=null;tip.hidden=true;return}
   if(hovered!==m){m.userData.prevEdge=m.children[0].material;m.children[0].material=new THREE.LineBasicMaterial({color:css("--accent")});m.scale.set(1.012,1.012,1.012)}
   hovered=m;const u=m.userData.u,it=cargo[u.item];
-  tip.innerHTML=`<b>#${u.item+1} ${esc(it.name||"Model")}</b>Unit ${u.unitNo} of ${u.qty} · ${u.orient}<div class="mono">Row ${u.row}, layer ${u.layer}<br>${Math.round(u.x)}–${Math.round(u.x+u.sx)} cm from front wall<br>${it.l}×${it.w}×${it.h} cm${it.kg?` · ${it.kg} kg`:""}</div>`;
+  tip.innerHTML=`<b>#${u.item+1} ${esc(it.name||"Model")}</b>Unit ${u.unitNo} of ${u.qty} · ${u.orient}<div class="mono">Row ${u.row}, layer ${u.layer}<br>${Math.round(u.x)}–${Math.round(u.x+u.sx)} cm from front wall<br>W${it.w} × D${it.l} × H${it.h} cm${it.kg?` · ${it.kg} kg`:""}</div>`;
   tip.hidden=false;
   tip.style.left=Math.max(4,Math.min(x+12,stage.clientWidth-tip.offsetWidth-6))+"px";
   tip.style.top=Math.max(6,y-tip.offsetHeight-10)+"px";

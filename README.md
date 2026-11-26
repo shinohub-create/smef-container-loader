@@ -68,7 +68,7 @@ You need Microsoft 365 or Excel 2021 or later (Windows, Mac or web). The panel u
 
 ## Workbook layout it expects
 
-- **Input**: a header row containing *Model*, *Quantity*, *Length*, *Width*, *Height*, *Weight* and *Max stack*, with cargo rows below it. Reading stops at the *TOTAL* row.
+- **Input**: a header row containing *Model*, *Quantity*, *W*, *D*, *H* (width, depth, height in cm), *Weight* and *Max stack*, with cargo rows below it. Reading stops at the *TOTAL* row.
 - **Containers**: the type in column A (20ft / 40ft / 40ft HC), and internal L/W/H cm in columns B–D. Max payload goes in column F.
 - **Loading Plan**: the selected container type in C3.
 

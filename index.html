@@ -207,7 +207,7 @@ td .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-al
       <table>
         <thead><tr>
           <th style="width:28px"></th><th>Model / description</th><th class="num" style="width:80px">Qty</th>
-          <th class="num" style="width:82px">L cm</th><th class="num" style="width:82px">W cm</th><th class="num" style="width:82px">H cm</th>
+          <th class="num" style="width:82px">W cm</th><th class="num" style="width:82px">D cm</th><th class="num" style="width:82px">H cm</th>
           <th class="num" style="width:90px">kg / unit</th><th class="num" style="width:84px">Max stack</th>
           <th>Floor plan</th><th class="num">Floor length</th><th style="width:36px"></th>
         </tr></thead>
@@ -215,7 +215,7 @@ td .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-al
       </table>
     </div>
     <div class="manifest-foot">
-      <span>Dimensions are packed outer sizes in cm. Max stack blank means stack to the roof.</span>
+      <span>Sizes are packed outer W × D × H in cm. Max stack blank means stack to the roof.</span>
       <span class="tot" id="totals"></span>
     </div>
   </section>
@@ -344,7 +344,7 @@ function faceMat(idx,fw,fh,labels,ghost){
   const opts={transparent:ghost,opacity:ghost?.35:1,depthWrite:!ghost};
   if(labels){
     const scale=Math.min(4,900/Math.max(fw,fh));
-    const cv=textCanvas([`#${idx+1} ${it.name||"Model "+(idx+1)}`,`${it.l}×${it.w}×${it.h} cm`,it.kg?`${it.kg} kg`:""].filter(Boolean),
+    const cv=textCanvas([`#${idx+1} ${it.name||"Model "+(idx+1)}`,`W${it.w} × D${it.l} × H${it.h} cm`,it.kg?`${it.kg} kg`:""].filter(Boolean),
       {w:Math.max(32,Math.round(fw*scale)),h:Math.max(32,Math.round(fh*scale)),bg:col,fg:lum(col)>.55?"#111":"#fff",border:shade(col,.6)});
     const tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;
     m=new THREE.MeshLambertMaterial({map:tex,...opts});
@@ -452,7 +452,7 @@ function setHover(m,x,y){
   if(!m){hovered=null;tip.hidden=true;return}
   if(hovered!==m){m.userData.prevEdge=m.children[0].material;m.children[0].material=new THREE.LineBasicMaterial({color:css("--accent")});m.scale.set(1.012,1.012,1.012)}
   hovered=m;const u=m.userData.u,it=cargo[u.item];
-  tip.innerHTML=`<b>#${u.item+1} ${esc(it.name||"Model")}</b>Unit ${u.unitNo} of ${u.qty} · ${u.orient}<div class="mono">Row ${u.row}, layer ${u.layer}<br>${Math.round(u.x)}–${Math.round(u.x+u.sx)} cm from front wall<br>${it.l}×${it.w}×${it.h} cm${it.kg?` · ${it.kg} kg`:""}</div>`;
+  tip.innerHTML=`<b>#${u.item+1} ${esc(it.name||"Model")}</b>Unit ${u.unitNo} of ${u.qty} · ${u.orient}<div class="mono">Row ${u.row}, layer ${u.layer}<br>${Math.round(u.x)}–${Math.round(u.x+u.sx)} cm from front wall<br>W${it.w} × D${it.l} × H${it.h} cm${it.kg?` · ${it.kg} kg`:""}</div>`;
   tip.hidden=false;const sw=stage.clientWidth;tip.style.left=Math.min(x+14,sw-tip.offsetWidth-8)+"px";tip.style.top=Math.max(8,y-tip.offsetHeight-10)+"px";
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -534,7 +534,7 @@ function renderTable(){
     const inp=(f,type,v,extra="")=>`<input id="c-${i}-${f}" data-r="${i}" data-f="${f}" type="${type}" value="${v===undefined||v===null?"":esc(v)}" ${type==="number"?'min="0" step="any" inputmode="decimal"':""} ${extra}>`;
     tr.innerHTML=`<td><span class="sw" style="background:${COLORS[i%COLORS.length]}"></span></td>
       <td>${inp("name","text",it.name,'aria-label="Model"')}</td><td>${inp("qty","number",it.qty,'aria-label="Quantity"')}</td>
-      <td>${inp("l","number",it.l,'aria-label="Length cm"')}</td><td>${inp("w","number",it.w,'aria-label="Width cm"')}</td><td>${inp("h","number",it.h,'aria-label="Height cm"')}</td>
+      <td>${inp("w","number",it.w,'aria-label="Width cm"')}</td><td>${inp("l","number",it.l,'aria-label="Depth cm"')}</td><td>${inp("h","number",it.h,'aria-label="Height cm"')}</td>
       <td>${inp("kg","number",it.kg,'aria-label="Weight per unit kg"')}</td><td>${inp("stack","number",it.stack,'aria-label="Max stack layers" placeholder="–"')}</td>
       <td>${plan}</td><td class="num">${len}</td><td><button class="del" type="button" data-del="${i}" aria-label="Remove row">×</button></td>`;
     tb.appendChild(tr);
@@ -572,12 +572,14 @@ function readFile(f){
 function importWorkbook(wb,name){
   const sheetName=wb.SheetNames.find(n=>/input/i.test(n))||wb.SheetNames[0];
   const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,raw:true,defval:""});
-  let hi=rows.findIndex(r=>r.some(v=>/length/i.test(String(v)))&&r.some(v=>/model|desc|item/i.test(String(v))));
-  if(hi<0){toast(`Couldn't find the cargo header row (Model, Quantity, Length…) on “${sheetName}”.`);return}
-  const H=rows[hi].map(v=>String(v).toLowerCase());
-  const col=re=>H.findIndex(h=>re.test(h));
-  const ci={name:col(/model|desc|item/),qty:col(/qty|quantity|pcs/),l:col(/length/),w:col(/width/),h:col(/height/),kg:col(/weight|kg/),stack:col(/stack/)};
-  if(ci.l<0||ci.w<0||ci.h<0||ci.qty<0){toast("The header row needs Quantity, Length, Width and Height columns.");return}
+  const norm=v=>String(v??"").toLowerCase().replace(/\(.*?\)|\bcm\b|[^a-z ]/g," ").replace(/\s+/g," ").trim();
+  const isW=h=>h==="w"||/\bwidth\b/.test(h),isD=h=>h==="d"||/depth|length/.test(h),isH=h=>h==="h"||/height/.test(h);
+  let hi=rows.findIndex(r=>{const n=r.map(norm);return n.some(isW)&&n.some(isD)&&n.some(isH)});
+  if(hi<0){toast(`Couldn't find the cargo header row (Model, Quantity, W, D, H…) on “${sheetName}”.`);return}
+  const H=rows[hi].map(norm);
+  const col=t=>H.findIndex(typeof t==="function"?t:h=>t.test(h));
+  const ci={name:col(/model|desc|item/),qty:col(/qty|quantity|pcs/),l:col(isD),w:col(isW),h:col(isH),kg:col(/weight|kg/),stack:col(/stack/)};
+  if(ci.l<0||ci.w<0||ci.h<0||ci.qty<0){toast("The header row needs Quantity, W, D and H columns.");return}
   const out=[];
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i],nm=ci.name>=0?String(r[ci.name]).trim():"";
